@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "n+MQwYxz7ikUSWqpZqSVRE5I5/ynO2POUX2QFyNK5j8+DTKaYffIqdoK+GTrSrZdwNw72Wun99oIn5StBKNspQ==",
+  "success": true,
+  "projectFilePath": "/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Herosi_2023/Herosi_2023.csproj",
+  "expectedPackageFiles": [
+    "/Users/jakubkindracki/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/jakubkindracki/.nuget/packages/microsoft.netframework.referenceassemblies.net471/1.0.3/microsoft.netframework.referenceassemblies.net471.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
