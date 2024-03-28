@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "6SiwFOEIEznzvOltvlORRxQcrlFB+7TjzAVpdROdYG+BDZzCuEDSR8MuUF7EVFNhAp08lH/MMe0kOWF9b7iAmg==",
+  "success": true,
+  "projectFilePath": "/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/Odwiedziny.csproj",
+  "expectedPackageFiles": [
+    "/Users/jakubkindracki/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/jakubkindracki/.nuget/packages/microsoft.netframework.referenceassemblies.net471/1.0.3/microsoft.netframework.referenceassemblies.net471.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
