@@ -1,0 +1,14 @@
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/bin/Debug/net4.7.1/Odwiedziny.exe.config
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/bin/Debug/net4.7.1/Odwiedziny.exe
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/bin/Debug/net4.7.1/Odwiedziny.pdb
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/bin/Debug/net4.7.1/Graphs.dll
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/bin/Debug/net4.7.1/TestSet.dll
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.csproj.AssemblyReference.cache
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.GeneratedMSBuildEditorConfig.editorconfig
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.AssemblyInfoInputs.cache
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.AssemblyInfo.cs
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.csproj.CoreCompileInputs.cache
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.sourcelink.json
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.csproj.CopyComplete
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.exe
+/Users/jakubkindracki/RiderProjects/LAB6_AiSD2/Odwiedziny/obj/Debug/net4.7.1/Odwiedziny.pdb
