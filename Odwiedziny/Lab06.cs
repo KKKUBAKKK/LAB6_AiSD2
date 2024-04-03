@@ -1,6 +1,7 @@
 using ASD.Graphs;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace ASD
@@ -16,51 +17,77 @@ namespace ASD
 		/// <returns>Pierwszy element pary to informacja, czy rozwiązanie istnieje. Drugi element pary, to droga będąca rozwiązaniem: sekwencja odwiedzanych wierzchołków (pierwszy musi być start, ostatni target). W przypadku, gdy nie ma rozwiązania, ma być tablica o długości 0.</returns>
 		public (bool possible, int[] path) Stage1(int n, DiGraph<int> c, Graph<int> g, int target, int start)
 		{
-			// Works, but: Test  8:  computation interrupted (time limit 3 time units exceeded)
-			// Result is correct, but it takes 7s
-			// VERSION WITH A LAYERED GRAPH
-			DiGraph<int> layeredGraph = new DiGraph<int>(g.VertexCount * n);
-			bool isReachable = false;
+			int curClr = -1;
+			int cur = target;
 			
-			for (int layer = 0; layer < n; layer++)
+			bool possible = false;
+			
+			List<int> path = new List<int>();
+			Queue<int> queue = new Queue<int>();
+			
+			bool[,] visited = new bool[g.VertexCount, n];
+			int[,] prev = new int[g.VertexCount, n];
+			
+			for (int i = 0; i < n; i++)
+				visited[start, i] = true;
+			
+			queue.Enqueue(start);
+			while (queue.Count > 0 && !possible)
 			{
-				foreach (var edge in g.BFS().SearchAll())
+				var v = queue.Dequeue();
+
+				foreach (var edge in g.OutEdges(v))
 				{
-					if (layer == edge.Weight || c.HasEdge(layer, edge.Weight))
+					int nbr = edge.To;
+					int color = edge.Weight;
+					
+					if (visited[nbr, color])
+						continue;
+					
+					if (visited[v, color] || CheckColorChange(visited, v, color, c) != -1)
 					{
-						layeredGraph.AddEdge(edge.From + g.VertexCount * layer, edge.To + g.VertexCount * edge.Weight, edge.Weight);
+						visited[nbr, color] = true;
+						prev[nbr, color] = v;
+						
+						if (nbr == target)
+						{
+							curClr = color;
+							possible = true;
+							break;
+						}
+						
+						queue.Enqueue(nbr);
 					}
 				}
 			}
 
-			List<int> path = new List<int>();
-			int prev = start;
-			path.Add(start);
-			foreach (var e in layeredGraph.DFS().SearchFrom(start))
-			{
-				if (e.From != prev)
-				{
-					int ind = path.LastIndexOf(e.From);
-					path.RemoveRange(ind + 1, path.Count - ind - 1);
-				}
-				
-				prev = e.To;
-				path.Add(e.To);
-				
-				if (e.To % g.VertexCount == target)
-				{
-					isReachable = true;
-					break;
-				}
-			}
-			
-			if (!isReachable)
+			if (!possible)
 				return (false, new int[0]);
 
-			for (int i = 0; i < path.Count; i++)
-				path[i] = path[i] % g.VertexCount;
-			
-			return (true, path.ToArray());
+			int pr = prev[cur, curClr];
+			path.Add(cur);
+			while (cur != start)
+			{
+				int tempClr = CheckColorChange(visited, pr, curClr, c);
+				if (tempClr != -1)
+					curClr = tempClr;
+				cur = pr;
+				path.Add(cur);
+				if (curClr != -1)
+					pr = prev[cur, curClr];
+			}
+			path.Reverse();
+
+			return (possible, path.ToArray());
+		}
+
+		int CheckColorChange(bool[,] colors, int vertexFrom, int targetColor, DiGraph<int> c)
+		{
+			for (int i = 0; i < colors.GetLength(1); i++)
+				if (i != targetColor && colors[vertexFrom, i] && c.HasEdge(i, targetColor))
+					return i;
+
+			return -1;
 		}
 
 		/// <summary>Drugi etap</summary>
