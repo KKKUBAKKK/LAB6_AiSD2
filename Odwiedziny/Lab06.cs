@@ -1,9 +1,7 @@
 using ASD.Graphs;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Xml.Schema;
 
 namespace ASD
 {
@@ -83,7 +81,7 @@ namespace ASD
 				{
 					if (layer == edge.Weight)
 					{
-						layeredGraph.AddEdge(edge.From + g.VertexCount * layer, edge.To + g.VertexCount * edge.Weight, 1);
+						layeredGraph.AddEdge(edge.From + g.VertexCount * layer, edge.To + g.VertexCount * layer, 1);
 					}
 					else if (c.HasEdge(layer, edge.Weight))
 					{
@@ -118,6 +116,7 @@ namespace ASD
 			if (minCost == Int32.MaxValue)
 				return (null, new int[0]);
 
+			// minCost = pathsInfo[minStart].GetDistance(starts[minStart], target + minTarget * g.VertexCount);
 			var path = pathsInfo[minStart].GetPath(starts[minStart], target + minTarget * g.VertexCount);
 			for (int i = 0; i < path.Length; i++)
 				path[i] = path[i] % g.VertexCount;
