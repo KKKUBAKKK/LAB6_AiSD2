@@ -100,7 +100,7 @@ namespace ASD
 		public (int? cost, int[] path) Stage2(int n, DiGraph<int> c, Graph<int> g, int target, int[] starts)
 		{
 			DiGraph<int> layeredGraph = new DiGraph<int>(g.VertexCount * n);
-			bool isReachable = false;
+			// bool isReachable = false;
 			
 			for (int layer = 0; layer < n; layer++)
 			{
@@ -117,25 +117,31 @@ namespace ASD
 				}
 			}
 
-			PathsInfo<int>[] pathsInfo = new PathsInfo<int>[starts.Length];
+			PathsInfo<int>[] pathsInfo = new PathsInfo<int>[n * starts.Length];
+			int m = starts.Length;
 			int minCost = Int32.MaxValue;
 			int minStart = -1;
+			int minStartLevel = -1;
 			int minTarget = -1;
 			for (int i = 0; i < starts.Length; i++)
 			{
-				pathsInfo[i] = Paths.Dijkstra(layeredGraph, starts[i]);
-
-				for (int j = 0; j < n; j++)
+				for (int k = 0; k < n; k++)
 				{
-					if (!pathsInfo[i].Reachable(starts[i], target + j * g.VertexCount))
-						continue;
-					
-					int cost = pathsInfo[i].GetDistance(starts[i], target + j * g.VertexCount);
-					if (cost < minCost)
+					pathsInfo[i + k * m] = Paths.Dijkstra(layeredGraph, starts[i] + k * g.VertexCount);
+
+					for (int j = 0; j < n; j++)
 					{
-						minCost = cost;
-						minStart = i;
-						minTarget = j;
+						if (!pathsInfo[i + k * m].Reachable(starts[i] + k * g.VertexCount, target + j * g.VertexCount))
+							continue;
+
+						int cost = pathsInfo[i + k * m].GetDistance(starts[i] + k * g.VertexCount, target + j * g.VertexCount);
+						if (cost < minCost)
+						{
+							minStartLevel = k;
+							minCost = cost;
+							minStart = i;
+							minTarget = j;
+						}
 					}
 				}
 			}
@@ -144,7 +150,7 @@ namespace ASD
 				return (null, new int[0]);
 
 			// minCost = pathsInfo[minStart].GetDistance(starts[minStart], target + minTarget * g.VertexCount);
-			var path = pathsInfo[minStart].GetPath(starts[minStart], target + minTarget * g.VertexCount);
+			var path = pathsInfo[minStart + minStartLevel * m].GetPath(starts[minStart] + minStartLevel * g.VertexCount, target + minTarget * g.VertexCount);
 			for (int i = 0; i < path.Length; i++)
 				path[i] = path[i] % g.VertexCount;
 
