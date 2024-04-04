@@ -625,7 +625,7 @@ namespace ASD
 			tests.PrepareTestSets();
 			foreach (var ts in tests.TestSets)
 			{
-				ts.Value.PerformTests(verbose: true, checkTimeLimit: false);
+				ts.Value.PerformTests(verbose: true, checkTimeLimit: true);
 			}
 
 		}

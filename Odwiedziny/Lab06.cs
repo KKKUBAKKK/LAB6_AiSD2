@@ -99,63 +99,113 @@ namespace ASD
 		/// <returns>Pierwszy element pary to koszt najlepszego rozwiązania lub null, gdy rozwiązanie nie istnieje. Drugi element pary, tak jak w etapie 1, to droga będąca rozwiązaniem: sekwencja odwiedzanych wierzchołków (pierwszy musi być start, ostatni target). W przypadku, gdy nie ma rozwiązania, ma być tablica o długości 0.</returns>
 		public (int? cost, int[] path) Stage2(int n, DiGraph<int> c, Graph<int> g, int target, int[] starts)
 		{
-			DiGraph<int> layeredGraph = new DiGraph<int>(g.VertexCount * n);
-			// bool isReachable = false;
 			
-			for (int layer = 0; layer < n; layer++)
-			{
-				foreach (var edge in g.BFS().SearchAll())
-				{
-					if (layer == edge.Weight)
-					{
-						layeredGraph.AddEdge(edge.From + g.VertexCount * layer, edge.To + g.VertexCount * layer, 1);
-					}
-					else if (c.HasEdge(layer, edge.Weight))
-					{
-						layeredGraph.AddEdge(edge.From + g.VertexCount * layer, edge.To + g.VertexCount * edge.Weight, c.GetEdgeWeight(layer, edge.Weight) + 1);
-					}
-				}
-			}
-
-			PathsInfo<int>[] pathsInfo = new PathsInfo<int>[n * starts.Length];
-			int m = starts.Length;
+			int[,] globalCosts = new int[g.VertexCount, n];
+			for (int i = 0; i < g.VertexCount; i++)
+				for (int j = 0; j < n; j++)
+					globalCosts[i, j] = Int32.MaxValue;
+			for (int i = 0; i < starts.Length; i++)
+				for (int j = 0; j < n; j++)
+					globalCosts[i, j] = 0;
+			
+			// int currentCost = 0;
 			int minCost = Int32.MaxValue;
-			int minStart = -1;
-			int minStartLevel = -1;
-			int minTarget = -1;
+			// int minStart = -1;
+
+			// Loop to check every start point
 			for (int i = 0; i < starts.Length; i++)
 			{
+				// New priority queue and new visited array for each starting point
+				SafePriorityQueue<int, int> priorityQueue = new SafePriorityQueue<int, int>(g.VertexCount);
+				bool[,] visited = new bool[g.VertexCount, n];
 				for (int k = 0; k < n; k++)
+					visited[starts[i], k] = true;
+				
+				// Filling queue with all vertices with max priorities
+				for (int j = 0; j < g.VertexCount; j++)
+					priorityQueue.Insert(j, Int32.MaxValue);
+				
+				// Setting start priority to 0 so that it will be first
+				priorityQueue.UpdatePriority(starts[i], 0);
+				
+				// Loop for Dijkstra algorithm
+				while (priorityQueue.Count > 0)
 				{
-					pathsInfo[i + k * m] = Paths.Dijkstra(layeredGraph, starts[i] + k * g.VertexCount);
+					// Save vertex with best priority and it's priority (cost)
+					var priority = priorityQueue.BestPriority();
+					var v = priorityQueue.Extract();
+					
+					// If I got from one start to another it means that it's better to start from the other one
+					// Also if priority is still max, it means that all reachable vertices where used
+					if (priority == Int32.MaxValue)
+						break;
 
-					for (int j = 0; j < n; j++)
+					// Iterating threw all the neighbours
+					foreach (var edge in g.OutEdges(v))
 					{
-						if (!pathsInfo[i + k * m].Reachable(starts[i] + k * g.VertexCount, target + j * g.VertexCount))
-							continue;
-
-						int cost = pathsInfo[i + k * m].GetDistance(starts[i] + k * g.VertexCount, target + j * g.VertexCount);
-						if (cost < minCost)
+						int nbr = edge.To;
+						int color = edge.Weight;
+						int cost = priority + 1;
+						int tempC = -1;
+						
+						// Checking the same conditions as in the first stage (if vertex is reachable)
+						if (visited[v, color] || (tempC = CheckBestColorChange(visited, v, color, c)) != -1)
 						{
-							minStartLevel = k;
-							minCost = cost;
-							minStart = i;
-							minTarget = j;
+							// If color change is needed add the additional cost of the change
+							if (tempC != -1)
+							{
+								// tempC is the best possible color change, so I just need to add it to cost
+								cost += c.GetEdgeWeight(tempC, color);
+							}
+
+							// Check if cost is greater than the globally best cost for all starts, if so skip
+							if (cost >= globalCosts[nbr, color])
+								continue;
+							
+							// Update visited array
+							visited[nbr, color] = true;
+							
+							// Update global costs array
+							globalCosts[nbr, color] = cost;
+							
+							// Update priority in queue
+							if (priorityQueue.Contains(nbr))
+								priorityQueue.UpdatePriority(nbr, cost);
+							else
+								priorityQueue.Insert(nbr, cost);
 						}
 					}
 				}
 			}
 
+			minCost = Int32.MaxValue;
+			for (int i = 0; i < n; i++)
+			{
+				if (globalCosts[target, i] < minCost)
+					minCost = globalCosts[target, i];
+			}
+
 			if (minCost == Int32.MaxValue)
 				return (null, new int[0]);
+			
+			return (minCost, new int[0]);
+		}
+		
+		int CheckBestColorChange(bool[,] colors, int vertexFrom, int targetColor, DiGraph<int> c)
+		{
+			int min = 0;
+			int minCost = Int32.MaxValue;
+			for (int i = 0; i < colors.GetLength(1); i++)
+				if (i != targetColor && colors[vertexFrom, i] && c.HasEdge(i, targetColor) && minCost > c.GetEdgeWeight(i, targetColor))
+				{
+					min = i;
+					minCost = c.GetEdgeWeight(i, targetColor);
+				}
 
-			// minCost = pathsInfo[minStart].GetDistance(starts[minStart], target + minTarget * g.VertexCount);
-			var path = pathsInfo[minStart + minStartLevel * m].GetPath(starts[minStart] + minStartLevel * g.VertexCount, target + minTarget * g.VertexCount);
-			for (int i = 0; i < path.Length; i++)
-				path[i] = path[i] % g.VertexCount;
-
-			return (minCost, path.ToArray());
-			// return (minCost, new int[0]);
+			if (minCost != Int32.MaxValue)
+				return min;
+			
+			return -1;
 		}
 	}
 }
