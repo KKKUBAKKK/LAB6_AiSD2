@@ -122,11 +122,12 @@ namespace ASD
 					visited[starts[i], k] = true;
 				
 				// Filling queue with all vertices with max priorities
-				for (int j = 0; j < g.VertexCount; j++)
-					priorityQueue.Insert(j, Int32.MaxValue);
+				// for (int j = 0; j < g.VertexCount; j++)
+				// 	priorityQueue.Insert(j, Int32.MaxValue); // do usuniecia???
 				
 				// Setting start priority to 0 so that it will be first
-				priorityQueue.UpdatePriority(starts[i], 0);
+				priorityQueue.Insert(starts[i], 0);
+				// priorityQueue.UpdatePriority(starts[i], 0);
 				
 				// Loop for Dijkstra algorithm
 				while (priorityQueue.Count > 0)
@@ -177,18 +178,66 @@ namespace ASD
 					}
 				}
 			}
-
+			
+			// Finding minimal cost
 			minCost = Int32.MaxValue;
+			int minColor = -1;
 			for (int i = 0; i < n; i++)
 			{
 				if (globalCosts[target, i] < minCost)
+				{
+					minColor = i;
 					minCost = globalCosts[target, i];
+				}
 			}
-
+			
+			// Exit if target is not reachable
 			if (minCost == Int32.MaxValue)
 				return (null, new int[0]);
 			
-			return (minCost, new int[0]);
+			// Finding the path with minimal cost
+			bool[,] globalVisited = new bool[g.VertexCount, n];
+			for (int i = 0; i < g.VertexCount; i++)
+				for (int j = 0; j < n; j++)
+					globalVisited[i, j] = globalCosts[i, j] != Int32.MaxValue;
+			
+			List<int> path = new List<int>();
+			int prev = target;
+			int prevColor = minColor;
+			int prevCost = minCost;
+			path.Add(prev);
+			while (prevCost > 0)
+			{
+				foreach (var edge in g.OutEdges(prev))
+				{
+					if (edge.Weight != prevColor)
+						continue;
+			
+					if (globalCosts[edge.To, prevColor] == prevCost - 1)
+					{
+						prevCost = globalCosts[edge.To, prevColor];
+						prev = edge.To;
+						break;
+					}
+			
+					for (int i = 0; i < n; i++)
+					{
+						if (i != prevColor && c.HasEdge(i, prevColor) && globalCosts[edge.To, i] ==
+						    prevCost - 1 - c.GetEdgeWeight(i, prevColor))
+						{
+							prevCost = globalCosts[edge.To, i];
+							prevColor = i;
+							prev = edge.To;
+							break;
+						}
+					}
+				}
+				path.Add(prev);
+			}
+			
+			path.Reverse();
+			
+			return (minCost, path.ToArray());
 		}
 		
 		int CheckBestColorChange(bool[,] colors, int vertexFrom, int targetColor, DiGraph<int> c)
