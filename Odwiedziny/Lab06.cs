@@ -1,6 +1,7 @@
 using ASD.Graphs;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 
@@ -19,6 +20,7 @@ namespace ASD
 		{
 			int curClr = -1;
 			int cur = target;
+			int tmpC = -1;
 			
 			bool possible = false;
 			
@@ -26,10 +28,13 @@ namespace ASD
 			Queue<int> queue = new Queue<int>();
 			
 			bool[,] visited = new bool[g.VertexCount, n];
-			int[,] prev = new int[g.VertexCount, n];
+			(int color, int v)[,] prev = new(int, int)[g.VertexCount, n];
 			
 			for (int i = 0; i < n; i++)
+			{
 				visited[start, i] = true;
+				prev[start, i] = (-1, -1);
+			}
 			
 			queue.Enqueue(start);
 			while (queue.Count > 0 && !possible)
@@ -43,11 +48,15 @@ namespace ASD
 					
 					if (visited[nbr, color])
 						continue;
-					
-					if (visited[v, color] || CheckColorChange(visited, v, color, c) != -1)
+
+					tmpC = -1;
+					if (visited[v, color] || (tmpC = CheckColorChange(visited, v, color, c)) != -1)
 					{
 						visited[nbr, color] = true;
-						prev[nbr, color] = v;
+						if (tmpC != -1)
+							prev[nbr, color] = (color, v);
+						else
+							prev[nbr, color] = (tmpC, v);
 						
 						if (nbr == target)
 						{
@@ -64,18 +73,25 @@ namespace ASD
 			if (!possible)
 				return (false, new int[0]);
 
-			int pr = prev[cur, curClr];
-			path.Add(cur);
-			while (cur != start)
+			(int Color, int v) current = (curClr, target);
+			while (current.v != -1)
 			{
-				int tempClr = CheckColorChange(visited, pr, curClr, c);
-				if (tempClr != -1)
-					curClr = tempClr;
-				cur = pr;
-				path.Add(cur);
-				if (curClr != -1)
-					pr = prev[cur, curClr];
+				path.Add(current.v);
+				current = prev[current.v, current.Color];
 			}
+
+			// int pr = prev[cur, curClr];
+			// path.Add(cur);
+			// while (cur != start)
+			// {
+			// 	int tempClr = CheckColorChange(visited, pr, curClr, c);
+			// 	if (tempClr != -1)
+			// 		curClr = tempClr;
+			// 	cur = pr;
+			// 	path.Add(cur);
+			// 	if (curClr != -1)
+			// 		pr = prev[cur, curClr];
+			// }
 			path.Reverse();
 
 			return (possible, path.ToArray());
@@ -99,7 +115,7 @@ namespace ASD
 		/// <returns>Pierwszy element pary to koszt najlepszego rozwiązania lub null, gdy rozwiązanie nie istnieje. Drugi element pary, tak jak w etapie 1, to droga będąca rozwiązaniem: sekwencja odwiedzanych wierzchołków (pierwszy musi być start, ostatni target). W przypadku, gdy nie ma rozwiązania, ma być tablica o długości 0.</returns>
 		public (int? cost, int[] path) Stage2(int n, DiGraph<int> c, Graph<int> g, int target, int[] starts)
 		{
-			
+			(int color, int v)[,] prev = new (int color, int v)[g.VertexCount, n];
 			int[,] globalCosts = new int[g.VertexCount, n];
 			for (int i = 0; i < g.VertexCount; i++)
 				for (int j = 0; j < n; j++)
@@ -108,9 +124,7 @@ namespace ASD
 				for (int j = 0; j < n; j++)
 					globalCosts[i, j] = 0;
 			
-			// int currentCost = 0;
 			int minCost = Int32.MaxValue;
-			// int minStart = -1;
 
 			// Loop to check every start point
 			for (int i = 0; i < starts.Length; i++)
@@ -119,15 +133,13 @@ namespace ASD
 				SafePriorityQueue<int, int> priorityQueue = new SafePriorityQueue<int, int>(g.VertexCount);
 				bool[,] visited = new bool[g.VertexCount, n];
 				for (int k = 0; k < n; k++)
+				{
 					visited[starts[i], k] = true;
-				
-				// Filling queue with all vertices with max priorities
-				// for (int j = 0; j < g.VertexCount; j++)
-				// 	priorityQueue.Insert(j, Int32.MaxValue); // do usuniecia???
+					prev[starts[i], k] = (-1, -1);
+				}
 				
 				// Setting start priority to 0 so that it will be first
 				priorityQueue.Insert(starts[i], 0);
-				// priorityQueue.UpdatePriority(starts[i], 0);
 				
 				// Loop for Dijkstra algorithm
 				while (priorityQueue.Count > 0)
@@ -163,6 +175,12 @@ namespace ASD
 							if (cost >= globalCosts[nbr, color])
 								continue;
 							
+							// Update prev
+							if (tempC == -1)
+								prev[nbr, color] = (color, v);
+							else
+								prev[nbr, color] = (tempC, v);
+							
 							// Update visited array
 							visited[nbr, color] = true;
 							
@@ -195,46 +213,13 @@ namespace ASD
 			if (minCost == Int32.MaxValue)
 				return (null, new int[0]);
 			
-			// Finding the path with minimal cost
-			bool[,] globalVisited = new bool[g.VertexCount, n];
-			for (int i = 0; i < g.VertexCount; i++)
-				for (int j = 0; j < n; j++)
-					globalVisited[i, j] = globalCosts[i, j] != Int32.MaxValue;
-			
 			List<int> path = new List<int>();
-			int prev = target;
-			int prevColor = minColor;
-			int prevCost = minCost;
-			path.Add(prev);
-			while (prevCost > 0)
+			(int color, int v) current = (minColor, target);
+			while (current.v != -1)
 			{
-				foreach (var edge in g.OutEdges(prev))
-				{
-					if (edge.Weight != prevColor)
-						continue;
-			
-					if (globalCosts[edge.To, prevColor] == prevCost - 1)
-					{
-						prevCost = globalCosts[edge.To, prevColor];
-						prev = edge.To;
-						break;
-					}
-			
-					for (int i = 0; i < n; i++)
-					{
-						if (i != prevColor && c.HasEdge(i, prevColor) && globalCosts[edge.To, i] ==
-						    prevCost - 1 - c.GetEdgeWeight(i, prevColor))
-						{
-							prevCost = globalCosts[edge.To, i];
-							prevColor = i;
-							prev = edge.To;
-							break;
-						}
-					}
-				}
-				path.Add(prev);
+				path.Add(current.v);
+				current = prev[current.v, current.color];
 			}
-			
 			path.Reverse();
 			
 			return (minCost, path.ToArray());
